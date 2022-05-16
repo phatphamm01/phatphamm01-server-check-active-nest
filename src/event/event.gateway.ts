@@ -8,7 +8,7 @@ import {
 import firebaseService from 'src/util/firebase';
 import useUserSession from 'src/util/session';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: '*' })
 export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect {
   socketID?: string = '';
 
