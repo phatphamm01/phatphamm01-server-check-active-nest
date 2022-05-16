@@ -1,10 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { resolve } from 'path';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import {
+  ExpressAdapter,
+  NestExpressApplication,
+} from '@nestjs/platform-express';
+
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import * as express from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const server = express();
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    new ExpressAdapter(server),
+  );
+
+  const httpsServer = https.createServer();
+
   const options = {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -15,6 +30,11 @@ async function bootstrap() {
   app.enableCors(options);
   app.setBaseViewsDir(resolve('./public'));
   app.setViewEngine('hbs');
-  await app.listen(3000, '0.0.0.0');
+
+  await app.init();
+
+  const PORT = process.env.PORT || 3000;
+  http.createServer(server).listen(PORT);
+  https.createServer(server).listen(443);
 }
 bootstrap();
